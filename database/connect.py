@@ -7,4 +7,3 @@ from utils.logging import logger
 
 client = AsyncIOMotorClient(MONGO_URL)
 db = client[MONGO_NAME]
-users = db['users']

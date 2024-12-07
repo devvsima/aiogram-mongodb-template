@@ -1,23 +1,20 @@
 from utils.logging import logger
 
-from ..connect import users
+from ..connect import db
+from ..base import BaseDB
 
-async def get_user(id: int):
-    try:
-        user = await users.find_one({"_id": id})
-        logger.info(user['username'])
+class Users(BaseDB):
+    def __init__(self, db):
+        super().__init__(db)  # Вызов конструктора базового класса
+        self.collection = self.db['users']  # Указание коллекции для пользователей
+
+    async def get_or_create_user(self, user_id: int, username: str = None, language: str = None):
+        user = await self.get({'id': user_id})  # Передаем словарь с полем id
+        if not user:
+            user_data = {'_id': user_id, 'username': username, 'language': language}
+            await self.create(user_data)  
+            user = user_data  
         return user
-    except Exception as e:
-        logger.error(f"Error while getting user {id}: {e}")
-        return None
-
-async def create_user(id: int, username: str = None, language: str = None):
-    await users.insert_one({"_id": id, "username": username, "language": language})
-    logger.info(f"New user created: {username} | {id}")
-    return await get_user(id)
-
-async def get_or_create_user(id: int, username: str = None, language: str = None):
-    user = await get_user(id)
-    if not user:
-        user = await create_user(id, username, language)
-    return user
+    
+    
+UsersDB = Users(db)
